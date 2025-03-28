@@ -8,7 +8,7 @@ const config = require('../config/config');
 
 const inputNewData = async (req, res) => {
   try {
-    const { fristName, lastName, userName, email, password } = req.body;
+    const { firstName, lastName, userName, email, password } = req.body;
     const { isValid, errors } = validateUserInput({ email, password });
     if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
@@ -21,7 +21,7 @@ const inputNewData = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create new user with hashed password
-    const user = new User({ fristName, lastName, userName, email, password: hashedPassword });
+    const user = new User({ firstName, lastName, userName, email, password: hashedPassword });
     await user.save();
 
     // const token = jwt.sign({ id: user._id, email, name }, config.jwtSecret, { expiresIn: '1h' });

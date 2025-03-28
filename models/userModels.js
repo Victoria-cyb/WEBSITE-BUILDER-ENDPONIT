@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema({
     unique: true, 
     sparse: true 
   },
-  fristName: { 
+  firstName: { 
     type: String, 
     required: true 
   },
