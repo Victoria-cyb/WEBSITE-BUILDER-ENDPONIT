@@ -34,8 +34,8 @@ const googleAuthStart = (req, res) => {
         user = new User({ email, name });
         await user.save();
       }
-    //   const token = jwt.sign({ id: user._id, email, name }, config.jwtSecret, { expiresIn: '1h' });
-    // res.redirect(`https://website-builder-endponit.onrender.com/dashboard?token=${token}`);
+      const token = jwt.sign({ id: user._id, email, name }, config.jwtSecret);
+    res.redirect(`https://website-builder-endponit.onrender.com/dashboard?token=${tokens}`);
   } catch (error) {
     res.status(500).json({ error: 'Google auth failed', message: error.message });
   }
