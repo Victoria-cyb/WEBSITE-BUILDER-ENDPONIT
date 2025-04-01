@@ -27,7 +27,9 @@ const client = new OAuth2Client(
 const googleAuthStart = (req, res) => {
   try {
     const authUrl = client.generateAuthUrl({
+      access_type: 'offline',
       scope: ['profile', 'email'],
+      redirect_uri: config.googleRedirectUri,
     });
     console.log('Generated auth URL:', authUrl);
     res.redirect(authUrl);
@@ -45,7 +47,9 @@ const googleAuthStart = (req, res) => {
 
       console.log('Received code:', code);
 
-      const { tokens } = await client.getToken({code, redirect_uri: config.googleRedirectUri,});
+      const { tokens } = await client.getToken({code, 
+        redirect_uri: config.googleRedirectUri,
+      });
   
       const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
@@ -65,7 +69,7 @@ const googleAuthStart = (req, res) => {
         await user.save();
       }
       const token = jwt.sign({ id: user._id, email, name }, config.jwtSecret);
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${token}`);
+    res.redirect(`${config.frontendUrl}/dashboard?token=${token}`);
   } catch (error) {
     console.error('Google auth error:', error.message, error.response?.data);
     res.status(500).json({ error: 'Google auth failed', message: error.message });
