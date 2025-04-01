@@ -19,9 +19,9 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.GOOGLE_
 }
 
 const client = new OAuth2Client( 
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+  config.googleClientId,
+  config.googleClientSecret,
+  config.googleRedirectUri
 );
 
 const googleAuthStart = (req, res) => {
@@ -45,7 +45,7 @@ const googleAuthStart = (req, res) => {
 
       console.log('Received code:', code);
 
-      const { tokens } = await client.getToken(code);
+      const { tokens } = await client.getToken({code, redirect_uri: config.googleRedirectUri,});
   
       const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
