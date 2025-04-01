@@ -14,6 +14,7 @@ const googleAuthStart = (req, res) => {
     const authUrl = client.generateAuthUrl({
       scope: ['profile', 'email'],
     });
+    console.log('Generated auth URL:', authUrl);
     res.redirect(authUrl);
   };
 
@@ -21,13 +22,20 @@ const googleAuthStart = (req, res) => {
     try {
       const code = req.query.code;
       if (!code) throw new Error('No authorization code provided');
+
+      console.log('Received code:', code);
+
       const { tokens } = await client.getToken(code);
   
       const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
         audience: config.googleClientId,
       });
+      if (!ticket) throw new Error('Token verification failed');
+
       const payload = ticket.getPayload();
+      if (!payload) throw new Error('No payload in ticket');
+
       const email = payload.email;
       const name = payload.name;
   
