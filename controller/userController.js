@@ -77,7 +77,7 @@ const forgotPassword = async (req, res) => {
     console.log(`Generated OTP: ${otp}`);
     console.log(`Saved User:`, user);
 
-    const message = `Your password reset OTP is: ${otp}. it expires in 10 minutes.`;
+    const message = `Your password reset OTP is: ${otp}. it expires in 10 minutes, Do not share this code with anyone`;
     await sendResetEmail(email, message);
 
     res.json({ success: true, message: 'OTP sent to email' });
