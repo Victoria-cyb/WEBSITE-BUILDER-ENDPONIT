@@ -60,15 +60,25 @@ const googleAuthStart = (req, res) => {
       const payload = ticket.getPayload();
       if (!payload) throw new Error('No payload in ticket');
 
+      const googleId = payload.sub;
       const email = payload.email;
-      const name = payload.name;
+      const name = payload.name || 'Unknown User';
+      const [firstName, ...lastNameArr] = name.split('');
+      const lastName = lastNameArr.join('') || 'Unknown';
   
       let user = await User.findOne({ email });
       if (!user) {
-        user = new User({ email, name });
+        user = new User({ 
+          googleId,
+          firstName,
+          lastName,
+          userName: email.split('@')[0],
+          email, 
+          password: 'google-auth-placeholder'
+          });
         await user.save();
       }
-      const token = jwt.sign({ id: user._id, email, name }, config.jwtSecret);
+      const token = jwt.sign({ id: user._id, email, name: user.firstName + '' + user.lastName }, config.jwtSecret, {expiresIn: '1h'});
     res.redirect(`${config.frontendUrl}/dashboard?token=${token}`);
   } catch (error) {
     console.error('Google auth error:', error.message, error.response?.data);
