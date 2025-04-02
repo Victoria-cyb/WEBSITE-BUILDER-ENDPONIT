@@ -72,6 +72,8 @@ const forgotPassword = async (req, res) => {
 
     user.resetPasswordToken = otp;
     user.resetPasswordExpires = expires;
+    user.markModified('resetPasswordToken'); // Ensure Mongoose recognizes the change
+    user.markModified('resetPasswordExpires');
     await user.save({ validateBeforeSave: false });
 
     const updatedUser = await User.findOne({ email });
@@ -99,21 +101,19 @@ const resetPassword = async (req, res) => {
     const { isValid, errors } = validateUserInput({ password });
     if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
-    console.log(`[resetPassword] Received OTP: ${token}`);
-    console.log(`[resetPassword] Current time: ${Date.now()}`);
-    console.log(`[resetPassword] Query:`, {
-      resetPasswordToken: token,
+    // Ensure token is a string
+    const otpToCheck = String(token).trim(); // Remove any whitespace
+    console.log(`[resetPassword] Received OTP: ${otpToCheck}`);
+
+    const user = await User.findOne({
+      resetPasswordToken: otpToCheck, // Match exactly as string
       resetPasswordExpires: { $gt: Date.now() },
     });
 
-    const user = await User.findOne({
-      resetPasswordToken: String(token),
-      resetPasswordExpires: { $gt: Date.now() }
-    });
-
+    console.log(`[resetPassword] Found user:`, user ? 'User found' : 'No user found');
+    if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
     console.log(`[resetPassword] Found user:`, user);
 
-    if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
 
     // Hash new password manually
     const salt = await bcrypt.genSalt(10);
