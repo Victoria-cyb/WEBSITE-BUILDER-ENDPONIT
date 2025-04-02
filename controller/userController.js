@@ -93,10 +93,16 @@ const resetPassword = async (req, res) => {
     const { isValid, errors } = validateUserInput({ password });
     if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
+    console.log(`Received OTP: ${token}`);
+    console.log(`Current time: ${Date.now()}`);
+
     const user = await User.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: String(token),
       resetPasswordExpires: { $gt: Date.now() }
     });
+
+    console.log(`Found user:`, user);
+
     if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
 
     // Hash new password manually
