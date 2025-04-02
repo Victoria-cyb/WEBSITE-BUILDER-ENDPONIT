@@ -110,14 +110,14 @@ const resetPassword = async (req, res) => {
       resetPasswordExpires: { $gt: Date.now() },
     });
 
-    console.log(`[resetPassword] Found user:`, user ? 'User found' : 'No user found');
+    console.log(`[resetPassword] Found user:`, user ? user.email : 'No user found');
     if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
-    console.log(`[resetPassword] Found user:`, user);
+    // console.log(`[resetPassword] Found user:`, user);
 
 
     // Hash new password manually
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    // const salt = await bcrypt.genSalt(10);
+    // user.password = await bcrypt.hash(password, salt);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
