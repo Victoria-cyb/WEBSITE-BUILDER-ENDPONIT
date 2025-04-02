@@ -95,11 +95,38 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, token } = req.body;
+
+    // Ensure token is a string and remove whitespace
+    const otpToCheck = String(token).trim();
+    console.log(`[verifyOtp] Received OTP: ${otpToCheck}`);
+
+    // Find user with matching OTP and ensure OTP is not expired
+    const user = await User.findOne({
+      email,
+      resetPasswordToken: otpToCheck,
+      resetPasswordExpires: { $gt: Date.now() }, // Ensure OTP hasn't expired
+    });
+
+    if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
+
+    // If OTP is valid, mark user as verified (optional, can be a flag)
+    res.json({ success: true, message: 'OTP is valid' });
+
+  } catch (err) {
+    console.log(`[verifyOtp] Error: ${err.message}`);
+    res.status(500).json({ error: 'OTP verification failed', message: err.message });
+  }
+};
+
+
 const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
     const { isValid, errors } = validateUserInput({ password });
-    if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
+   if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
     // Ensure token is a string
     const otpToCheck = String(token).trim(); // Remove any whitespace
@@ -116,8 +143,8 @@ const resetPassword = async (req, res) => {
 
 
     // Hash new password manually
-    // const salt = await bcrypt.genSalt(10);
-    // user.password = await bcrypt.hash(password, salt);
+     const salt = await bcrypt.genSalt(10);
+     user.password = await bcrypt.hash(password, salt);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
@@ -142,6 +169,7 @@ module.exports = {
   inputNewData,
   inputData,
   forgotPassword,
+  verifyOtp,
   resetPassword,
   getProfile
 };
