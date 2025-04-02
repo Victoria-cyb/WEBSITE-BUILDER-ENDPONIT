@@ -9,15 +9,21 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const sendResetEmail = async (to, resetUrl) => {
+const sendResetEmail = async (email, message) => {
+  try {
   const mailOptions = {
     from: config.emailUser,
     to,
-    subject: 'Password Reset Request',
-    text: `Click this link to reset your password: ${resetUrl}\n\nThis link expires in 1 hour.`
+    subject: 'Password Reset OTP',
+    text: message,
   };
 
   await transporter.sendMail(mailOptions);
+  console.log(`Email sent to ${email}`);
+} catch (error) {
+  console.error('Error sending error:', error);
+  throw new Error('Failed to send email')
+}
 };
 
 module.exports = { sendResetEmail };

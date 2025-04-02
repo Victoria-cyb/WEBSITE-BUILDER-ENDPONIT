@@ -57,26 +57,30 @@ const inputData = async (req, res) => {
   }
 };
 
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const token = crypto.randomBytes(20).toString('hex');
-    const expires = Date.now() + 3600000;
+    const otp = generateOTP();
+    const expires = new Date(Date.now() + 10 * 60 * 1000)
 
-    user.resetPasswordToken = token;
+    user.resetPasswordToken = otp;
     user.resetPasswordExpires = expires;
     await user.save({ validateBeforeSave: false });
 
-    console.log(`Generated Token: ${token}`);
+    console.log(`Generated OTP: ${otp}`);
     console.log(`Saved User:`, user);
 
-    const resetUrl = `${config.frontendUrl}/reset-password/${token}`;
-    await sendResetEmail(email, resetUrl);
+    const message = `Your password reset OTP is: ${otp}. it expires in 10 minutes.`;
+    await sendResetEmail(email, message);
 
-    res.json({ success: true, message: 'Reset link sent to email' });
+    res.json({ success: true, message: 'OTP sent to email' });
   } catch (error) {
     res.status(500).json({ error: 'Forgot password failed', message: error.message });
   }
@@ -92,13 +96,13 @@ const resetPassword = async (req, res) => {
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() }
     });
-    if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+    if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
 
     // Hash new password manually
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
     await user.save();
 
     res.json({ success: true, message: 'Password reset successful' });
