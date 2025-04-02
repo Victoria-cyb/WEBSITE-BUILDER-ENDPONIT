@@ -124,7 +124,7 @@ const verifyOtp = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { token, password } = req.body;
+    const { email, token, password } = req.body;
     const { isValid, errors } = validateUserInput({ password });
    if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
@@ -133,6 +133,7 @@ const resetPassword = async (req, res) => {
     console.log(`[resetPassword] Received OTP: ${otpToCheck}`);
 
     const user = await User.findOne({
+      email,
       resetPasswordToken: otpToCheck, // Match exactly as string
       resetPasswordExpires: { $gt: Date.now() },
     });
