@@ -13,7 +13,7 @@ const sendResetEmail = async (email, message) => {
   try {
   const mailOptions = {
     from: config.emailUser,
-    to,
+    to: email,
     subject: 'Password Reset OTP',
     text: message,
   };
