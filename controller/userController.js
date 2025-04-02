@@ -74,9 +74,15 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = expires;
     await user.save({ validateBeforeSave: false });
 
+    const updatedUser = await User.findOne({ email });
     console.log(`Generated OTP: ${otp}`);
+    console.log(`[forgotPassword] Expiration: ${expires}`);
     console.log(`Saved User:`, user);
-    console.log(`User after save:`, await User.findOne({ email }));
+    console.log(`[forgotPassword] User after save:`, await User.findOne({ email }));
+
+    if (!updatedUser.resetPasswordToken) {
+      throw new Error('OTP not saved to database');
+    }
 
     const message = `Your password reset OTP is: ${otp}. it expires in 10 minutes, Do not share this code with anyone`;
     await sendResetEmail(email, message);
@@ -93,15 +99,19 @@ const resetPassword = async (req, res) => {
     const { isValid, errors } = validateUserInput({ password });
     if (!isValid) return res.status(400).json({ error: 'Validation failed', details: errors });
 
-    console.log(`Received OTP: ${token}`);
-    console.log(`Current time: ${Date.now()}`);
+    console.log(`[resetPassword] Received OTP: ${token}`);
+    console.log(`[resetPassword] Current time: ${Date.now()}`);
+    console.log(`[resetPassword] Query:`, {
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
 
     const user = await User.findOne({
       resetPasswordToken: String(token),
       resetPasswordExpires: { $gt: Date.now() }
     });
 
-    console.log(`Found user:`, user);
+    console.log(`[resetPassword] Found user:`, user);
 
     if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
 
